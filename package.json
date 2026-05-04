@@ -1,0 +1,17 @@
+{
+  "name": "circuit-json-to-3d-png",
+  "module": "lib/index.ts",
+  "type": "module",
+  "scripts": {
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
+  "files": ["lib"],
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
