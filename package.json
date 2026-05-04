@@ -1,6 +1,11 @@
 {
   "name": "circuit-json-to-3d-png",
-  "module": "lib/index.ts",
+  "main": "./lib/index.ts",
+  "module": "./lib/index.ts",
+  "types": "./lib/index.ts",
+  "exports": {
+    ".": "./lib/index.ts"
+  },
   "type": "module",
   "scripts": {
     "format": "biome format --write .",
@@ -13,5 +18,11 @@
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "circuit-json": "^0.0.422",
+    "circuit-json-to-gltf": "^0.0.97",
+    "poppygl": "^0.0.20"
   }
 }
