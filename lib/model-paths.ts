@@ -1,5 +1,3 @@
-import path from "node:path"
-import { pathToFileURL } from "node:url"
 import type { AnyCircuitElement } from "circuit-json"
 
 const modelUrlKeys = [
@@ -18,11 +16,45 @@ const modelUrlKeys = [
 const hasUriScheme = (value: string): boolean =>
   /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(value) && !/^[a-zA-Z]:[\\/]/.test(value)
 
+const isWindowsAbsolutePath = (value: string): boolean =>
+  /^[a-zA-Z]:[\\/]/.test(value)
+
+const getDefaultBaseDir = (): string | undefined => {
+  if (
+    typeof process !== "undefined" &&
+    process &&
+    typeof process.cwd === "function"
+  ) {
+    return process.cwd()
+  }
+
+  return undefined
+}
+
+const toFileUrl = (value: string): string => {
+  const normalizedPath = value.replace(/\\/g, "/")
+  const pathname = isWindowsAbsolutePath(value)
+    ? `/${normalizedPath}`
+    : normalizedPath
+
+  return new URL(`file://${encodeURI(pathname)}`).href
+}
+
+const toDirectoryUrl = (value: string): string => {
+  if (hasUriScheme(value)) {
+    return value.endsWith("/") ? value : `${value}/`
+  }
+
+  const directoryPath =
+    value.endsWith("/") || value.endsWith("\\") ? value : `${value}/`
+  return toFileUrl(directoryPath)
+}
+
 export const normalizeModelUrls = (
   circuitJson: AnyCircuitElement[],
   options: { modelPathBaseDir?: string; projectBaseUrl?: string } = {},
 ): AnyCircuitElement[] => {
-  const baseDir = options.modelPathBaseDir ?? process.cwd()
+  const baseDir = options.modelPathBaseDir ?? getDefaultBaseDir()
   const hasModelPathBaseDir = options.modelPathBaseDir != null
   const preserveRelativeModelUrls = Boolean(options.projectBaseUrl)
 
@@ -37,12 +69,14 @@ export const normalizeModelUrls = (
 
       if (value.startsWith("/") && preserveRelativeModelUrls) {
         updated[key] = value
-      } else if (value.startsWith("/") || value.match(/^[a-zA-Z]:\\/)) {
-        updated[key] = pathToFileURL(value).href
+      } else if (value.startsWith("/") || isWindowsAbsolutePath(value)) {
+        updated[key] = toFileUrl(value)
       } else if (preserveRelativeModelUrls && !hasModelPathBaseDir) {
         updated[key] = value
+      } else if (!baseDir) {
+        updated[key] = value
       } else {
-        updated[key] = pathToFileURL(path.resolve(baseDir, value)).href
+        updated[key] = new URL(value, toDirectoryUrl(baseDir)).href
       }
     }
 

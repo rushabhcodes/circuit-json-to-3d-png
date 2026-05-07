@@ -18,7 +18,7 @@ const cameraPresetSnapshotDir = path.join(
 )
 
 test("camera presets change the default camera position", async () => {
-  const defaultCamera = getDefaultCameraForCircuitJson(basicBoardFixture)
+  const defaultCamera = await getDefaultCameraForCircuitJson(basicBoardFixture)
 
   for (const preset of CAMERA_PRESET_NAMES) {
     const presetCamera = applyCameraPreset(preset, defaultCamera)
