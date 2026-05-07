@@ -12,6 +12,12 @@ import { normalizeModelUrls } from "./model-paths"
 export type { CameraOptions, CameraPreset }
 export { CAMERA_PRESET_NAMES, applyCameraPreset }
 
+export type ConvertCircuitJsonTo3dGltfResult = Awaited<
+  ReturnType<
+    (typeof import("circuit-json-to-gltf"))["convertCircuitJsonToGltf"]
+  >
+>
+
 export type CircuitJson3dBaseOptions = {
   modelPathBaseDir?: string
   projectBaseUrl?: string
@@ -58,7 +64,7 @@ export const getDefaultCameraForCircuitJson = (
 export const convertCircuitJsonTo3dGltf = async (
   circuitJson: AnyCircuitElement[],
   options: CircuitJson3dBaseOptions = {},
-): Promise<unknown> => {
+): Promise<ConvertCircuitJsonTo3dGltfResult> => {
   const normalizedCircuitJson = normalizeModelUrls(circuitJson, options)
   const { convertCircuitJsonToGltf } = await loadCircuitJsonToGltf()
   return convertCircuitJsonToGltf(
@@ -77,7 +83,7 @@ export const convertCircuitJsonTo3dGlb = async (
     normalizedCircuitJson,
     getConversionOptions("glb", options),
   )
-  return normalizeToUint8Array(glbBuffer)
+  return normalizeToUint8Array(await normalizeToArrayBuffer(glbBuffer))
 }
 
 export const renderCircuitJsonTo3dPng = async (

@@ -4,8 +4,19 @@ const viewToArrayBuffer = (view: ArrayBufferView): ArrayBuffer => {
   return copy.buffer
 }
 
+type ArrayBufferLikeObject = {
+  arrayBuffer?: () => Promise<ArrayBuffer> | ArrayBuffer
+}
+
+export type ArrayBufferInput =
+  | ArrayBuffer
+  | ArrayBufferView
+  | ArrayBufferLikeObject
+
+export type Uint8ArrayInput = ArrayBuffer | ArrayBufferView
+
 export const normalizeToArrayBuffer = async (
-  value: unknown,
+  value: ArrayBufferInput,
 ): Promise<ArrayBuffer> => {
   if (value instanceof ArrayBuffer) {
     return value
@@ -15,14 +26,9 @@ export const normalizeToArrayBuffer = async (
     return viewToArrayBuffer(value as ArrayBufferView)
   }
 
-  if (value && typeof value === "object") {
-    const maybeArrayBufferLike = value as {
-      arrayBuffer?: () => Promise<ArrayBuffer> | ArrayBuffer
-    }
-    if (typeof maybeArrayBufferLike.arrayBuffer === "function") {
-      const result = maybeArrayBufferLike.arrayBuffer()
-      return result instanceof Promise ? await result : result
-    }
+  if ("arrayBuffer" in value && typeof value.arrayBuffer === "function") {
+    const result = value.arrayBuffer()
+    return result instanceof Promise ? await result : result
   }
 
   throw new Error(
@@ -30,7 +36,7 @@ export const normalizeToArrayBuffer = async (
   )
 }
 
-export const normalizeToUint8Array = (value: unknown): Uint8Array => {
+export const normalizeToUint8Array = (value: Uint8ArrayInput): Uint8Array => {
   if (value instanceof Uint8Array) {
     return value
   }
