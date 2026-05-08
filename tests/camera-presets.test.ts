@@ -1,7 +1,6 @@
 import { expect, test } from "bun:test"
 import type { AnyCircuitElement } from "circuit-json"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import path from "node:path"
+import "./fixtures/png-matcher"
 import basicBoardFixtureJson from "./fixtures/basic-board.fixture.json"
 import {
   CAMERA_PRESET_NAMES,
@@ -11,11 +10,6 @@ import {
 } from "lib/index"
 
 const basicBoardFixture = basicBoardFixtureJson as AnyCircuitElement[]
-const cameraPresetSnapshotDir = path.join(
-  import.meta.dir,
-  "__snapshots__",
-  "camera-presets.test",
-)
 
 test("camera presets change the default camera position", async () => {
   const defaultCamera = await getDefaultCameraForCircuitJson(basicBoardFixture)
@@ -34,18 +28,9 @@ test("camera presets change the default camera position", async () => {
     expect(png[1]).toBe(0x50)
     expect(png[2]).toBe(0x4e)
     expect(png[3]).toBe(0x47)
-
-    const snapshotPath = path.join(cameraPresetSnapshotDir, `${preset}.png`)
-    await mkdir(cameraPresetSnapshotDir, { recursive: true })
-    try {
-      const expected = await readFile(snapshotPath)
-      expect(png).toEqual(expected)
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-        throw error
-      }
-
-      await writeFile(snapshotPath, png)
-    }
+    await expect(png).toMatchPngSnapshot(
+      import.meta.path,
+      `camera-presets.test/${preset}.png`,
+    )
   }
 }, 120_000)
