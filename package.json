@@ -33,6 +33,7 @@
     "circuit-json": "^0.0.422",
     "circuit-json-to-connectivity-map": "^0.0.23",
     "circuit-json-to-gltf": "^0.0.97",
-    "poppygl": "^0.0.20"
+    "poppygl": "^0.0.20",
+    "schematic-symbols": "^0.0.17"
   }
 }
