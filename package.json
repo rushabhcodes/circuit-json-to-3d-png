@@ -1,0 +1,37 @@
+{
+  "name": "circuit-json-to-3d-png",
+  "version": "0.0.1",
+  "description": "Convert circuit-json designs into 3D PNG renders.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "build": "tsup-node lib/index.ts --format esm --dts",
+    "prepack": "npm run build",
+    "typecheck": "bunx tsc --noEmit",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
+  "files": ["dist"],
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14",
+    "@types/bun": "latest",
+    "tsup": "^8.5.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "circuit-json": "^0.0.422",
+    "circuit-json-to-gltf": "^0.0.97",
+    "poppygl": "^0.0.20"
+  }
+}
