@@ -32,7 +32,7 @@ test("custom camera overrides cameraPreset during PNG render", async () => {
   await mkdir(path.dirname(snapshotPath), { recursive: true })
   try {
     const expected = await readFile(snapshotPath)
-    expect(Array.from(png)).toEqual(Array.from(expected))
+    expect(png).toEqual(expected)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       throw error

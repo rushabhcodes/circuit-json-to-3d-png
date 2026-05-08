@@ -39,7 +39,7 @@ test("camera presets change the default camera position", async () => {
     await mkdir(cameraPresetSnapshotDir, { recursive: true })
     try {
       const expected = await readFile(snapshotPath)
-      expect(Array.from(png)).toEqual(Array.from(expected))
+      expect(png).toEqual(expected)
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
         throw error

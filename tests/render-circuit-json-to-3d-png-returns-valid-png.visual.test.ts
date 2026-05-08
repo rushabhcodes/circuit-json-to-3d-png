@@ -24,7 +24,7 @@ test("renderCircuitJsonTo3dPng returns a valid PNG buffer", async () => {
   await mkdir(path.dirname(snapshotPath), { recursive: true })
   try {
     const expected = await readFile(snapshotPath)
-    expect(Array.from(png)).toEqual(Array.from(expected))
+    expect(png).toEqual(expected)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       throw error
