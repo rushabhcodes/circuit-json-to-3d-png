@@ -13,9 +13,7 @@ export type { CameraOptions, CameraPreset }
 export { CAMERA_PRESET_NAMES, applyCameraPreset }
 
 export type ConvertCircuitJsonTo3dGltfResult = Awaited<
-  ReturnType<
-    (typeof import("circuit-json-to-gltf"))["convertCircuitJsonToGltf"]
-  >
+  ReturnType<typeof import("circuit-json-to-gltf")["convertCircuitJsonToGltf"]>
 >
 
 export type CircuitJson3dBaseOptions = {
