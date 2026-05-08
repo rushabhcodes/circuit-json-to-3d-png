@@ -13,6 +13,10 @@ const modelUrlKeys = [
   "step_model_url",
 ] as const
 
+type ModelUrlKey = (typeof modelUrlKeys)[number]
+type ElementWithModelUrls = AnyCircuitElement &
+  Partial<Record<ModelUrlKey, string>>
+
 const hasUriScheme = (value: string): boolean =>
   /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(value) && !/^[a-zA-Z]:[\\/]/.test(value)
 
@@ -61,10 +65,10 @@ export const normalizeModelUrls = (
   return circuitJson.map((element) => {
     if (!element || typeof element !== "object") return element
 
-    const updated = { ...element } as Record<string, unknown>
+    const updated: ElementWithModelUrls = { ...element }
     for (const key of modelUrlKeys) {
       const value = updated[key]
-      if (typeof value !== "string" || value.length === 0) continue
+      if (!value) continue
       if (hasUriScheme(value)) continue
 
       if (value.startsWith("/") && preserveRelativeModelUrls) {
@@ -80,6 +84,6 @@ export const normalizeModelUrls = (
       }
     }
 
-    return updated as AnyCircuitElement
+    return updated
   })
 }
