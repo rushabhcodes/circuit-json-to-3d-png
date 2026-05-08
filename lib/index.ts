@@ -22,6 +22,7 @@ export type CircuitJson3dBaseOptions = {
   modelPathBaseDir?: string
   projectBaseUrl?: string
   authHeaders?: { Authorization: string }
+  boardTextureResolution?: number
 }
 
 export type RenderCircuitJsonTo3dPngOptions = CircuitJson3dBaseOptions & {
@@ -52,6 +53,9 @@ const getConversionOptions = (
   format,
   ...(options.projectBaseUrl ? { projectBaseUrl: options.projectBaseUrl } : {}),
   ...(options.authHeaders ? { authHeaders: options.authHeaders } : {}),
+  ...(options.boardTextureResolution
+    ? { boardTextureResolution: options.boardTextureResolution }
+    : {}),
 })
 
 export const getDefaultCameraForCircuitJson = (
