@@ -3,8 +3,14 @@ import * as fs from "node:fs"
 import * as path from "node:path"
 import looksSame from "looks-same"
 
+/**
+ * Matcher for PNG snapshot testing with cross-platform tolerance.
+ *
+ * Usage:
+ *   expect(pngBuffer).toMatchPngSnapshot(import.meta.path, "optionalName");
+ */
 async function toMatchPngSnapshot(
-  // biome-ignore lint/suspicious/noExplicitAny: bun matcher context typing
+  // biome-ignore lint/suspicious/noExplicitAny: bun doesn't expose
   this: any,
   receivedMaybePromise: Buffer | Uint8Array | Promise<Buffer | Uint8Array>,
   testPathOriginal: string,
@@ -13,12 +19,10 @@ async function toMatchPngSnapshot(
   const received = await receivedMaybePromise
   const testPath = testPathOriginal
     .replace(/\.test\.tsx?$/, "")
-    .replace(/\.visual\.test\.ts$/, "")
+    .replace(/\.test\.ts$/, "")
   const snapshotDir = path.join(path.dirname(testPath), "__snapshots__")
   const snapshotName = pngName
-    ? pngName.endsWith(".png")
-      ? pngName
-      : `${pngName}.snap.png`
+    ? `${pngName}.snap.png`
     : `${path.basename(testPath)}.snap.png`
   const filePath = path.join(snapshotDir, snapshotName)
 
@@ -32,7 +36,10 @@ async function toMatchPngSnapshot(
     Boolean(process.env["BUN_UPDATE_SNAPSHOTS"])
   const forceUpdate = Boolean(process.env["FORCE_BUN_UPDATE_SNAPSHOTS"])
 
-  if (!fs.existsSync(filePath)) {
+  const fileExists = fs.existsSync(filePath)
+
+  if (!fileExists) {
+    console.log("Writing PNG snapshot to", filePath)
     fs.writeFileSync(filePath, received)
     return {
       message: () => `PNG snapshot created at ${filePath}`,
@@ -41,6 +48,7 @@ async function toMatchPngSnapshot(
   }
 
   const existingSnapshot = fs.readFileSync(filePath)
+
   const result: any = await looksSame(
     Buffer.from(received),
     Buffer.from(existingSnapshot),
@@ -61,7 +69,7 @@ async function toMatchPngSnapshot(
         pass: true,
       }
     }
-
+    console.log("Updating PNG snapshot at", filePath)
     fs.writeFileSync(filePath, received)
     return {
       message: () => `PNG snapshot updated at ${filePath}`,
@@ -76,17 +84,25 @@ async function toMatchPngSnapshot(
     }
   }
 
+  // Calculate diff percentage for cross-platform tolerance
   if (result.diffBounds) {
+    // Get image dimensions from the PNG buffer
     const width = existingSnapshot.readUInt32BE(16)
     const height = existingSnapshot.readUInt32BE(20)
     const totalPixels = width * height
+
     const diffArea =
       (result.diffBounds.right - result.diffBounds.left) *
       (result.diffBounds.bottom - result.diffBounds.top)
     const diffPercentage = (diffArea / totalPixels) * 100
-    const acceptableDiffPercentage = 5
 
-    if (diffPercentage <= acceptableDiffPercentage) {
+    // Allow up to 5% pixel difference for cross-platform rendering variations
+    const ACCEPTABLE_DIFF_PERCENTAGE = 5.0
+
+    if (diffPercentage <= ACCEPTABLE_DIFF_PERCENTAGE) {
+      console.log(
+        `✓ PNG snapshot matches (${diffPercentage.toFixed(3)}% difference, within ${ACCEPTABLE_DIFF_PERCENTAGE}% threshold)`,
+      )
       return {
         message: () =>
           `PNG snapshot matches (${diffPercentage.toFixed(3)}% difference)`,
@@ -94,7 +110,8 @@ async function toMatchPngSnapshot(
       }
     }
 
-    const diffPath = filePath.replace(/\.png$/, ".diff.png")
+    // If difference is too large, create diff image
+    const diffPath = filePath.replace(/\.snap\.png$/, ".diff.png")
     await looksSame.createDiff({
       reference: Buffer.from(existingSnapshot),
       current: Buffer.from(received),
@@ -104,12 +121,13 @@ async function toMatchPngSnapshot(
 
     return {
       message: () =>
-        `PNG snapshot differs by ${diffPercentage.toFixed(3)}% (threshold: ${acceptableDiffPercentage}%). Diff saved at ${diffPath}. Use BUN_UPDATE_SNAPSHOTS=1 to update the snapshot.`,
+        `PNG snapshot differs by ${diffPercentage.toFixed(3)}% (threshold: ${ACCEPTABLE_DIFF_PERCENTAGE}%). Diff saved at ${diffPath}. Use BUN_UPDATE_SNAPSHOTS=1 to update the snapshot.`,
       pass: false,
     }
   }
 
-  const diffPath = filePath.replace(/\.png$/, ".diff.png")
+  // Fallback if diffBounds isn't available
+  const diffPath = filePath.replace(/\.snap\.png$/, ".diff.png")
   await looksSame.createDiff({
     reference: Buffer.from(existingSnapshot),
     current: Buffer.from(received),
@@ -117,12 +135,16 @@ async function toMatchPngSnapshot(
     highlightColor: "#ff00ff",
   })
 
+  console.log(`📸 Snapshot mismatch (no diff bounds available)`)
+  console.log(`   Diff saved: ${diffPath}`)
+
   return {
     message: () => `PNG snapshot does not match. Diff saved at ${diffPath}`,
     pass: false,
   }
 }
 
+// Register the matcher globally for Bun's expect
 expect.extend({
   toMatchPngSnapshot: toMatchPngSnapshot as any,
 })
