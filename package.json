@@ -3,12 +3,11 @@
   "version": "0.0.1",
   "description": "Convert circuit-json designs into 3D PNG renders.",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "default": "./dist/index.js"
     }
   },
   "type": "module",
@@ -19,10 +18,15 @@
     "format": "biome format --write .",
     "format:check": "biome format ."
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",
     "@types/bun": "latest",
+    "circuit-json-to-connectivity-map": "^0.0.23",
+    "looks-same": "^10.0.1",
+    "schematic-symbols": "^0.0.17",
     "tsup": "^8.5.1"
   },
   "peerDependencies": {
