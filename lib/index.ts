@@ -26,7 +26,16 @@ export type CircuitJson3dBaseOptions = {
 export type RenderCircuitJsonTo3dPngOptions = CircuitJson3dBaseOptions & {
   camera?: CameraOptions
   cameraPreset?: CameraPreset
+  width?: number
+  height?: number
+  backgroundColor?: string | readonly [number, number, number] | null
+  showInfiniteGrid?: boolean
+  supersampling?: number
 }
+
+const INFINITE_GRID_COLOR = [0.9, 0.9, 0.9] as const
+const INFINITE_GRID_SECTION_COLOR = [0.7, 0.7, 0.9] as const
+const INFINITE_GRID_OFFSET = { y: 0 } as const
 
 const getRenderCamera = (
   circuitJson: AnyCircuitElement[],
@@ -97,8 +106,25 @@ export const renderCircuitJsonTo3dPng = async (
   const glbBuffer = await convertCircuitJsonTo3dGlb(circuitJson, options)
   const glbArrayBuffer = await normalizeToArrayBuffer(glbBuffer)
   const defaultCamera = getBestCameraPosition(circuitJson)
-  return renderGLTFToPNGFromGLB(
-    glbArrayBuffer,
-    getRenderCamera(circuitJson, defaultCamera, options),
-  )
+  return renderGLTFToPNGFromGLB(glbArrayBuffer, {
+    ...getRenderCamera(circuitJson, defaultCamera, options),
+    ...(options.width != null ? { width: options.width } : {}),
+    ...(options.height != null ? { height: options.height } : {}),
+    ...(options.backgroundColor !== undefined
+      ? { backgroundColor: options.backgroundColor }
+      : {}),
+    ...(options.supersampling != null
+      ? { supersampling: options.supersampling }
+      : {}),
+    ...(options.showInfiniteGrid
+      ? {
+          grid: {
+            infiniteGrid: true,
+            gridColor: INFINITE_GRID_COLOR,
+            sectionColor: INFINITE_GRID_SECTION_COLOR,
+            offset: INFINITE_GRID_OFFSET,
+          },
+        }
+      : {}),
+  })
 }
