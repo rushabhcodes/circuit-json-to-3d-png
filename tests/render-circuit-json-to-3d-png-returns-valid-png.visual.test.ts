@@ -16,3 +16,18 @@ test("renderCircuitJsonTo3dPng returns a valid PNG buffer", async () => {
   expect(png[3]).toBe(0x47)
   await expect(png).toMatchPngSnapshot(import.meta.path, "basic-board.png")
 }, 60_000)
+
+test("renderCircuitJsonTo3dPng renders the pcb solder mask color", async () => {
+  const blueBoardFixture = basicBoardFixture.map((element) =>
+    element.type === "pcb_board"
+      ? { ...element, solder_mask_color: "blue" }
+      : element,
+  )
+
+  const png = await renderCircuitJsonTo3dPng(blueBoardFixture)
+
+  await expect(png).toMatchPngSnapshot(
+    import.meta.path,
+    "blue-board.png",
+  )
+}, 60_000)
